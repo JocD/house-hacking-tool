@@ -1731,7 +1731,7 @@
                 '<span style="color: #27ae60;">GROSS Income</span>';
             document.getElementById('projectionScenario').textContent = hasRoommate ? 'With Roommate' : 'Without Roommate';
 
-            const years = [1, 5, 10, 15, 20, 25, 30];
+            const years = Array.from({ length: 30 }, (_, i) => i + 1);
             const projections = [];
             let cumulativeCashFlow = 0;
             let breakEvenCashFlowYear = null;

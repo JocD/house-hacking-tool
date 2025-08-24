@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Mortgage & Home Affordability Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .wide-section {
+            grid-column: 1 / -1;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            grid-column: 1 / -1;
+        }
+
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        h3 {
+            color: #555;
+            margin: 15px 0 10px 0;
+            font-size: 1em;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 0.9em;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+        }
+
+        .result-box {
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-weight: bold;
+            border: 1px solid #e9ecef;
+        }
+
+        .positive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .neutral {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9em;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .affordability-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.85em;
+        }
+
+        .affordability-table th,
+        .affordability-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .affordability-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .scenario-conservative {
+            background: #d4edda;
+        }
+
+        .scenario-realistic {
+            background: #e2e3e5;
+        }
+
+        .scenario-aggressive {
+            background: #f8d7da;
+        }
+
+        :not(th).tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        th.tooltip {
+            position: relative;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 280px;
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -140px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8em;
+            line-height: 1.3;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .roommate-section {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .roommate-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #ddd;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #3498db;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .roommate-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .roommate-content {
+            display: none;
+        }
+
+        .roommate-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .roommate-inputs {
+                grid-template-columns: 1fr;
+            }
+            
+            .tooltip .tooltiptext {
+                width: 240px;
+                margin-left: -120px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-grid">
+        <h1>Comprehensive Mortgage & Home Affordability Calculator</h1>
+
+        <div class="section">
+            <h2>Your Financial Profile</h2>
+            <div class="input-group">
+                <label class="tooltip">
+                    Annual Income ($) - <strong id="incomeTypeDisplay">GROSS</strong>
+                    <span class="tooltiptext">Your total annual income before taxes. Used to calculate housing-to-income ratios (recommended: keep housing under 25-30% of gross income).</span>
+                </label>
+                <input type="number" id="annualIncome" value="160000" oninput="calculate()">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="useAfterTaxIncome" onchange="toggleIncomeType()">
+                <label class="tooltip" for="useAfterTaxIncome">
+                    Use After-Tax Income for Analysis
+                    <span class="tooltiptext">Check this to use your take-home pay instead of gross income. This gives a more realistic view of affordability but lending guidelines typically use gross income.</span>
+                </label>
+            </div>
+            <div id="incomeWarning" class="result-box warning" style="display: none; margin-top: 10px;">
+                <div><strong>Warning: Using After-Tax Income</strong></div>
+                <div>Analysis shows affordability based on take-home pay. Remember: lenders typically qualify you based on gross income.</div>
+            </div>
+
+            <div class="input-group">
+                <label class="tooltip">
+                    Monthly Debt Payments ($)
+                    <span class="tooltiptext">Total monthly payments for car loans, credit cards, student loans, etc. This affects your debt-to-income ratio for mortgage qualification.</span>
+                </label>
+                <input type="number" id="monthlyDebt" value="850" oninput="calculate()">
+            </div>
+
+            <div class="input-group">
+                <label class="tooltip">
+                    Available Down Payment ($)
+                    <span class="tooltiptext">Cash available for down payment. Conventional loans require 5-20%, FHA loans allow 3.5%. Higher down payment reduces monthly payment and may eliminate PMI.</span>
+                </label>
+                <input type="number" id="downPaymentAmount" value="35000" oninput="calculate()">
+            </div>
+
+            <div class="input-group">
+                <label class="tooltip">
+                    Current Monthly Housing Cost ($)
+                    <span class="tooltiptext">Your current rent or housing payment. Used for comparison to show potential savings or increased costs.</span>
+                </label>
+                <input type="number" id="currentHousing" value="2200" oninput="calculate()">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Loan Details</h2>
+            <div class="input-group">
+                <label class="tooltip">
+                    Interest Rate (%)
+                    <span class="tooltiptext">Annual interest rate on your mortgage. Rates vary based on credit score, down payment, and loan type. Check current rates with lenders.</span>
+                </label>
+                <input type="number" id="interestRate" value="7.2" step="0.1" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Loan Term (years)
+                    <span class="tooltiptext">Length of your mortgage. 30-year loans have lower monthly payments but higher total interest. 15-year loans build equity faster.</span>
+                </label>
+                <select id="loanTerm" onchange="calculate()">
+                    <option value="15">15 years</option>
+                    <option value="30" selected>30 years</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Loan Type
+                    <span class="tooltiptext">Conventional loans typically require higher down payments but have better rates. FHA loans allow lower down payments but require mortgage insurance.</span>
+                </label>
+                <select id="loanType" onchange="calculate()">
+                    <option value="conventional">Conventional</option>
+                    <option value="fha">FHA</option>
+                    <option value="va">VA</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section wide-section">
+            <div class="roommate-section">
+                <div class="roommate-toggle">
+                    <span><strong>Include Roommate Income</strong></span>
+                    <div class="toggle-switch" id="roommateToggle" onclick="toggleRoommate()"></div>
+                    <span>(Optional - to help offset housing costs)</span>
+                </div>
+                <div id="roommateContent" class="roommate-content">
+                    <div class="roommate-inputs">
+                        <div class="input-group">
+                            <label class="tooltip">
+                                Monthly Roommate Rent ($)
+                                <span class="tooltiptext">Monthly rent you'd charge a roommate. Based on fair market rent for a bedroom in your area. Be conservative - account for vacancy and roommate turnover.</span>
+                            </label>
+                            <input type="number" id="roommateRent" value="1200" oninput="calculate()">
+                        </div>
+                        <div class="input-group">
+                            <label class="tooltip">
+                                Roommate Reliability (%)
+                                <span class="tooltiptext">Percentage of time you expect to have a paying roommate. Account for vacancy between roommates, difficulty finding tenants, etc. 85-95% is realistic.</span>
+                            </label>
+                            <input type="number" id="roommateReliability" value="90" min="0" max="100" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="result-box neutral" style="margin-top: 10px;">
+                        <div>Effective Monthly Roommate Income: <span id="effectiveRoommateIncome">$1,080</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section wide-section">
+            <h2>Home Affordability Analysis</h2>
+            <div class="result-box neutral" style="margin-bottom: 15px;">
+                <div><strong>Analysis Basis:</strong> <span id="analysisIncomeType">GROSS Income</span> - <span id="monthlyIncomeDisplay">$13,333/month</span></div>
+            </div>
+            
+            <table class="affordability-table">
+                <thead>
+                    <tr>
+                        <th class="tooltip">Affordability Level
+                            <span class="tooltiptext">Conservative (25%): Recommended by financial experts for comfortable living. Moderate (30%): Standard lending guideline, still manageable. Aggressive (40%): High but possible with stable income.</span>
+                        </th>
+                        <th class="tooltip">Max Home Price
+                            <span class="tooltiptext">Maximum home price you can afford at this income percentage, based on your available down payment and current interest rates.</span>
+                        </th>
+                        <th class="tooltip">Down Payment
+                            <span class="tooltiptext">Amount of your available down payment that would be used. May be less than your full down payment if 20% of home price is lower.</span>
+                        </th>
+                        <th class="tooltip">Loan Amount
+                            <span class="tooltiptext">The mortgage amount after down payment. This is what you'll owe the bank and pay interest on over the loan term.</span>
+                        </th>
+                        <th class="tooltip">Monthly Payment (PITI)
+                            <span class="tooltiptext">Total monthly payment including Principal, Interest, Taxes, and Insurance. This is your core housing payment to the lender.</span>
+                        </th>
+                        <th class="tooltip">% of Income
+                            <span class="tooltiptext">Percentage of your gross monthly income that goes to housing. Financial experts recommend keeping this under 30%.</span>
+                        </th>
+                        <th class="tooltip">DTI Ratio
+                            <span class="tooltiptext">Debt-to-Income ratio including your housing payment and existing debts. Lenders typically require DTI under 43-50%.</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="scenario-conservative">
+                        <td><strong>Conservative (25%)</strong></td>
+                        <td id="conservativePrice">$400,000</td>
+                        <td id="conservativeDown">$20,000</td>
+                        <td id="conservativeLoan">$380,000</td>
+                        <td id="conservativePayment">$3,333</td>
+                        <td>25%</td>
+                        <td id="conservativeDTI">31%</td>
+                    </tr>
+                    <tr class="scenario-realistic">
+                        <td><strong>Moderate (30%)</strong></td>
+                        <td id="moderatePrice">$480,000</td>
+                        <td id="moderateDown">$24,000</td>
+                        <td id="moderateLoan">$456,000</td>
+                        <td id="moderatePayment">$4,000</td>
+                        <td>30%</td>
+                        <td id="moderateDTI">36%</td>
+                    </tr>
+                    <tr class="scenario-aggressive">
+                        <td><strong>Aggressive (40%)</strong></td>
+                        <td id="aggressivePrice">$640,000</td>
+                        <td id="aggressiveDown">$32,000</td>
+                        <td id="aggressiveLoan">$608,000</td>
+                        <td id="aggressivePayment">$5,333</td>
+                        <td>40%</td>
+                        <td id="aggressiveDTI">46%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Specific Home Analysis</h2>
+            <div class="input-group">
+                <label class="tooltip">
+                    Target Home Price ($)
+                    <span class="tooltiptext">The price of a specific home you're considering. We'll analyze the affordability and long-term costs of this property.</span>
+                </label>
+                <input type="number" id="targetHomePrice" value="525000" oninput="calculate()">
+            </div>
+            
+            <div class="input-group">
+                <label class="tooltip">
+                    HOA Fees ($/month)
+                    <span class="tooltiptext">Monthly homeowners association fees. Many condos and planned communities have HOA fees for maintenance, amenities, and shared services. Enter 0 if no HOA.</span>
+                </label>
+                <input type="number" id="hoaFees" value="200" oninput="calculate()">
+            </div>
+            
+            <div class="result-box" id="targetAnalysisBox">
+                <div id="targetAnalysisText">Calculating analysis...</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Monthly Cost Breakdown</h2>
+            <div class="metric">
+                <span>Principal + Interest:</span>
+                <span id="principalInterest">$3,500</span>
+            </div>
+            <div class="metric">
+                <span>Property Taxes (est.):</span>
+                <span id="propertyTaxes">$875</span>
+            </div>
+            <div class="metric">
+                <span>Home Insurance:</span>
+                <span id="homeInsurance">$220</span>
+            </div>
+            <div class="metric">
+                <span>PMI/Mortgage Insurance:</span>
+                <span id="mortgageInsurance">$350</span>
+            </div>
+            <div class="metric">
+                <span><strong>Total PITI:</strong></span>
+                <span id="totalPITI"><strong>$4,945</strong></span>
+            </div>
+            
+            <h3>Additional Monthly Costs</h3>
+            <div class="metric">
+                <span>Utilities (est.):</span>
+                <span id="utilities">$300</span>
+            </div>
+            <div class="metric">
+                <span>Maintenance Reserve:</span>
+                <span id="maintenance">$440</span>
+            </div>
+            <div class="metric">
+                <span>HOA Fees:</span>
+                <span id="hoaFees">$200</span>
+            </div>
+            <div class="metric">
+                <span><strong>Total Housing Cost:</strong></span>
+                <span id="totalHousingCost"><strong>$5,885</strong></span>
+            </div>
+
+            <div class="result-box" id="roommateImpactBox" style="display: none; margin-top: 15px;">
+                <div><strong>With Roommate:</strong></div>
+                <div>Net Housing Cost: <span id="netHousingCost">$4,685</span></div>
+                <div>Effective % of Income: <span id="effectiveIncomePercent">35%</span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Upfront Costs</h2>
+            <div class="metric">
+                <span>Down Payment:</span>
+                <span id="actualDownPayment">$26,250</span>
+            </div>
+            <div class="metric">
+                <span>Closing Costs (3%):</span>
+                <span id="closingCosts">$15,750</span>
+            </div>
+            <div class="metric">
+                <span>Home Inspection:</span>
+                <span>$500</span>
+            </div>
+            <div class="metric">
+                <span>Moving Costs:</span>
+                <span>$2,000</span>
+            </div>
+            <div class="metric">
+                <span>Initial Furnishing/Repairs:</span>
+                <span>$5,000</span>
+            </div>
+            <div class="metric">
+                <span><strong>Total Initial Cost:</strong></span>
+                <span id="totalInitialCost"><strong>$49,500</strong></span>
+            </div>
+
+            <div class="result-box warning" style="margin-top: 10px;">
+                <div><strong>Emergency Fund Needed</strong></div>
+                <div>Recommended: <span id="emergencyFund">$18,000 - $35,000</span> (3-6 months expenses)</div>
+            </div>
+        </div>
+
+        <div class="section wide-section">
+            <h2>Long-Term Financial Impact</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                <div>
+                    <label class="tooltip">
+                        Annual Property Appreciation (%)
+                        <span class="tooltiptext">Expected annual property value increase. Long-term real estate average is 3-4%. Conservative estimates use 2-3%.</span>
+                    </label>
+                    <input type="number" id="appreciationRate" value="3" step="0.1" oninput="calculateLongTerm()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label class="tooltip">
+                        Rent Growth Rate (%)
+                        <span class="tooltiptext">Annual increase in rent if you had kept renting instead. Used to compare owning vs. renting over time.</span>
+                    </label>
+                    <input type="number" id="rentGrowthRate" value="4" step="0.1" oninput="calculateLongTerm()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </div>
+
+            <div style="overflow: visible;">
+                <table class="affordability-table" id="projectionTable">
+                    <thead>
+                        <tr>
+                            <th class="tooltip">Year
+                                <span class="tooltiptext">Years after purchase. Shows key milestones in your homeownership journey.</span>
+                            </th>
+                            <th class="tooltip">Home Value
+                                <span class="tooltiptext">Estimated property value based on your appreciation rate assumption. This is what you could potentially sell for.</span>
+                            </th>
+                            <th class="tooltip">Mortgage Balance
+                                <span class="tooltiptext">Remaining amount owed on your mortgage. Decreases over time as you make payments.</span>
+                            </th>
+                            <th class="tooltip">Home Equity
+                                <span class="tooltiptext">Your ownership stake in the home (Home Value - Mortgage Balance). This is your wealth from the property.</span>
+                            </th>
+                            <th class="tooltip">Monthly Payment
+                                <span class="tooltiptext">Your total monthly housing cost including mortgage, taxes, insurance, maintenance, and utilities.</span>
+                            </th>
+                            <th class="tooltip">Cumulative Payments
+                                <span class="tooltiptext">Total amount you've paid for housing since purchase. Includes all mortgage payments, taxes, insurance, and maintenance.</span>
+                            </th>
+                            <th class="tooltip">If Still Renting
+                                <span class="tooltiptext">Total rent you would have paid if you continued renting instead of buying, adjusted for rent increases.</span>
+                            </th>
+                            <th class="tooltip">Own vs Rent
+                                <span class="tooltiptext">Financial comparison: Positive means you're ahead by owning (equity exceeds extra costs). Negative means renting would have been cheaper.</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectionTableBody">
+                        <!-- Projection rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section wide-section">
+            <div class="result-box" id="recommendationBox">
+                <div id="recommendation">Calculating recommendation...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let hasRoommate = false;
+
+        function toggleIncomeType() {
+            const useAfterTax = document.getElementById('useAfterTaxIncome').checked;
+            const incomeTypeDisplay = document.getElementById('incomeTypeDisplay');
+            const incomeWarning = document.getElementById('incomeWarning');
+            const analysisIncomeType = document.getElementById('analysisIncomeType');
+
+            if (useAfterTax) {
+                incomeTypeDisplay.textContent = 'AFTER-TAX';
+                incomeTypeDisplay.style.color = '#e67e22';
+                incomeWarning.style.display = 'block';
+                analysisIncomeType.innerHTML = '<span style="color: #e67e22;">AFTER-TAX Income</span>';
+            } else {
+                incomeTypeDisplay.textContent = 'GROSS';
+                incomeTypeDisplay.style.color = '#27ae60';
+                incomeWarning.style.display = 'none';
+                analysisIncomeType.innerHTML = '<span style="color: #27ae60;">GROSS Income</span>';
+            }
+
+            calculate();
+        }
+
+        function toggleRoommate() {
+            hasRoommate = !hasRoommate;
+            const toggle = document.getElementById('roommateToggle');
+            const content = document.getElementById('roommateContent');
+            const impactBox = document.getElementById('roommateImpactBox');
+            
+            toggle.classList.toggle('active', hasRoommate);
+            content.classList.toggle('active', hasRoommate);
+            
+            if (hasRoommate) {
+                impactBox.style.display = 'block';
+            } else {
+                impactBox.style.display = 'none';
+            }
+            
+            calculate();
+        }
+
+        function calculate() {
+            const annualIncome = parseFloat(document.getElementById('annualIncome').value) || 160000;
+            const monthlyIncome = annualIncome / 12;
+            const monthlyDebt = parseFloat(document.getElementById('monthlyDebt').value) || 850;
+            const downPaymentAmount = parseFloat(document.getElementById('downPaymentAmount').value) || 35000;
+            const currentHousing = parseFloat(document.getElementById('currentHousing').value) || 2200;
+            const interestRate = parseFloat(document.getElementById('interestRate').value) || 7.2;
+            const loanTerm = parseInt(document.getElementById('loanTerm').value) || 30;
+            const loanType = document.getElementById('loanType').value;
+            const targetHomePrice = parseFloat(document.getElementById('targetHomePrice').value) || 525000;
+
+            // Calculate roommate income
+            let effectiveRoommateIncome = 0;
+            if (hasRoommate) {
+                const roommateRent = parseFloat(document.getElementById('roommateRent').value) || 1200;
+                const roommateReliability = parseFloat(document.getElementById('roommateReliability').value) || 90;
+                effectiveRoommateIncome = roommateRent * (roommateReliability / 100);
+                document.getElementById('effectiveRoommateIncome').textContent = formatCurrency(effectiveRoommateIncome);
+            }
+
+            // Update monthly income display
+            document.getElementById('monthlyIncomeDisplay').textContent = formatCurrency(monthlyIncome);
+
+            // Calculate affordability scenarios
+            const monthlyRate = interestRate / 100 / 12;
+            const numPayments = loanTerm * 12;
+            
+            // Conservative (25% of income)
+            const conservativeHousing = monthlyIncome * 0.25;
+            const conservativePrice = calculateMaxPrice(conservativeHousing, downPaymentAmount, monthlyRate, numPayments, loanType);
+            updateAffordabilityRow('conservative', conservativePrice, downPaymentAmount, conservativeHousing, monthlyIncome, monthlyDebt);
+
+            // Moderate (30% of income)
+            const moderateHousing = monthlyIncome * 0.30;
+            const moderatePrice = calculateMaxPrice(moderateHousing, downPaymentAmount, monthlyRate, numPayments, loanType);
+            updateAffordabilityRow('moderate', moderatePrice, downPaymentAmount, moderateHousing, monthlyIncome, monthlyDebt);
+
+            // Aggressive (40% of income)
+            const aggressiveHousing = monthlyIncome * 0.40;
+            const aggressivePrice = calculateMaxPrice(aggressiveHousing, downPaymentAmount, monthlyRate, numPayments, loanType);
+            updateAffordabilityRow('aggressive', aggressivePrice, downPaymentAmount, aggressiveHousing, monthlyIncome, monthlyDebt);
+
+            // Analyze specific target home
+            analyzeTargetHome(targetHomePrice, downPaymentAmount, monthlyRate, numPayments, loanType, monthlyIncome, monthlyDebt, currentHousing, effectiveRoommateIncome);
+
+            calculateLongTerm();
+        }
+
+        function calculateMaxPrice(maxPayment, downPayment, monthlyRate, numPayments, loanType) {
+            // Estimate property tax (1.5% annually), insurance ($2.5 per $1000 value), and PMI
+            const propertyTaxRate = 0.015 / 12; // 1.5% annually
+            const insuranceRate = 0.0025 / 12; // 0.25% annually
+            
+            // Iterative approach to find max price
+            let price = 100000;
+            let maxPrice = 1000000;
+            let minPrice = 50000;
+            
+            for (let i = 0; i < 50; i++) {
+                const loanAmount = Math.max(0, price - downPayment);
+                const principalInterest = loanAmount > 0 ? 
+                    (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                    (Math.pow(1 + monthlyRate, numPayments) - 1) : 0;
+                
+                const propertyTax = price * propertyTaxRate;
+                const insurance = price * insuranceRate;
+                
+                let pmi = 0;
+                if (loanType === 'conventional' && downPayment < price * 0.2) {
+                    pmi = loanAmount * 0.005 / 12; // 0.5% annually
+                } else if (loanType === 'fha') {
+                    pmi = loanAmount * 0.0085 / 12; // 0.85% annually
+                }
+                
+                const totalPayment = principalInterest + propertyTax + insurance + pmi;
+                
+                if (Math.abs(totalPayment - maxPayment) < 10) {
+                    return price;
+                }
+                
+                if (totalPayment > maxPayment) {
+                    maxPrice = price;
+                    price = (minPrice + price) / 2;
+                } else {
+                    minPrice = price;
+                    price = (price + maxPrice) / 2;
+                }
+            }
+            
+            return price;
+        }
+
+        function updateAffordabilityRow(scenario, price, downPayment, payment, monthlyIncome, monthlyDebt) {
+            const downPaymentUsed = Math.min(downPayment, price * 0.2); // Cap at 20%
+            const loanAmount = price - downPaymentUsed;
+            const dti = ((payment + monthlyDebt) / monthlyIncome) * 100;
+
+            document.getElementById(scenario + 'Price').textContent = formatCurrency(price);
+            document.getElementById(scenario + 'Down').textContent = formatCurrency(downPaymentUsed);
+            document.getElementById(scenario + 'Loan').textContent = formatCurrency(loanAmount);
+            document.getElementById(scenario + 'Payment').textContent = formatCurrency(payment);
+            document.getElementById(scenario + 'DTI').textContent = dti.toFixed(0) + '%';
+        }
+
+        function analyzeTargetHome(homePrice, downPayment, monthlyRate, numPayments, loanType, monthlyIncome, monthlyDebt, currentHousing, effectiveRoommateIncome) {
+            const downPaymentUsed = Math.min(downPayment, homePrice * 0.2);
+            const loanAmount = homePrice - downPaymentUsed;
+            
+            // Calculate monthly payment components
+            const principalInterest = loanAmount > 0 ? 
+                (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                (Math.pow(1 + monthlyRate, numPayments) - 1) : 0;
+            
+            const propertyTax = (homePrice * 0.015) / 12; // 1.5% annually
+            const insurance = (homePrice * 0.0025) / 12; // 0.25% annually
+            
+            let pmi = 0;
+            if (loanType === 'conventional' && downPaymentUsed < homePrice * 0.2) {
+                pmi = loanAmount * 0.005 / 12;
+            } else if (loanType === 'fha') {
+                pmi = loanAmount * 0.0085 / 12;
+            }
+            
+            const piti = principalInterest + propertyTax + insurance + pmi;
+            const utilities = 300; // Estimate
+            const maintenance = (homePrice * 0.01) / 12; // 1% annually
+            const hoa = parseFloat(document.getElementById('hoaFees').value) || 0;
+            
+            const totalHousingCost = piti + utilities + maintenance + hoa;
+            const netHousingCost = totalHousingCost - effectiveRoommateIncome;
+            
+            const housingPercent = (totalHousingCost / monthlyIncome) * 100;
+            const netHousingPercent = (netHousingCost / monthlyIncome) * 100;
+            const dti = ((piti + monthlyDebt) / monthlyIncome) * 100;
+            
+            // Update cost breakdown
+            document.getElementById('principalInterest').textContent = formatCurrency(principalInterest);
+            document.getElementById('propertyTaxes').textContent = formatCurrency(propertyTax);
+            document.getElementById('homeInsurance').textContent = formatCurrency(insurance);
+            document.getElementById('mortgageInsurance').textContent = formatCurrency(pmi);
+            document.getElementById('totalPITI').textContent = formatCurrency(piti);
+            document.getElementById('utilities').textContent = formatCurrency(utilities);
+            document.getElementById('maintenance').textContent = formatCurrency(maintenance);
+            document.getElementById('hoaFees').textContent = formatCurrency(hoa);
+            document.getElementById('totalHousingCost').textContent = formatCurrency(totalHousingCost);
+            
+            if (hasRoommate) {
+                document.getElementById('netHousingCost').textContent = formatCurrency(netHousingCost);
+                document.getElementById('effectiveIncomePercent').textContent = netHousingPercent.toFixed(0) + '%';
+            }
+            
+            // Update upfront costs
+            const closingCosts = homePrice * 0.03;
+            const totalInitial = downPaymentUsed + closingCosts + 500 + 2000 + 5000;
+            
+            document.getElementById('actualDownPayment').textContent = formatCurrency(downPaymentUsed);
+            document.getElementById('closingCosts').textContent = formatCurrency(closingCosts);
+            document.getElementById('totalInitialCost').textContent = formatCurrency(totalInitial);
+            
+            const emergencyMin = totalHousingCost * 3;
+            const emergencyMax = totalHousingCost * 6;
+            document.getElementById('emergencyFund').textContent = 
+                `${formatCurrency(emergencyMin)} - ${formatCurrency(emergencyMax)}`;
+            
+            // Generate recommendation
+            const analysisBox = document.getElementById('targetAnalysisBox');
+            const analysisText = document.getElementById('targetAnalysisText');
+            const effectivePercent = hasRoommate ? netHousingPercent : housingPercent;
+            const effectiveCost = hasRoommate ? netHousingCost : totalHousingCost;
+            
+            let recommendation = '';
+            let boxClass = '';
+            
+            if (effectivePercent <= 25 && dti <= 36) {
+                recommendation = `Financially Comfortable - Housing cost is ${effectivePercent.toFixed(0)}% of income (${formatCurrency(effectiveCost)}/month). DTI: ${dti.toFixed(0)}%. This is a conservative, sustainable purchase.`;
+                boxClass = 'positive';
+            } else if (effectivePercent <= 30 && dti <= 43) {
+                recommendation = `Manageable but Tight - Housing cost is ${effectivePercent.toFixed(0)}% of income (${formatCurrency(effectiveCost)}/month). DTI: ${dti.toFixed(0)}%. Manageable but leaves less room for other financial goals.`;
+                boxClass = 'warning';
+            } else if (effectivePercent <= 40 && dti <= 50) {
+                recommendation = `Stretched Finances - Housing cost is ${effectivePercent.toFixed(0)}% of income (${formatCurrency(effectiveCost)}/month). DTI: ${dti.toFixed(0)}%. This will significantly impact your budget flexibility.`;
+                boxClass = 'warning';
+            } else {
+                recommendation = `Not Recommended - Housing cost is ${effectivePercent.toFixed(0)}% of income (${formatCurrency(effectiveCost)}/month). DTI: ${dti.toFixed(0)}%. This is likely unaffordable and risky.`;
+                boxClass = 'negative';
+            }
+            
+            if (hasRoommate) {
+                recommendation += ` (Includes roommate income of ${formatCurrency(effectiveRoommateIncome)}/month)`;
+            }
+            
+            const comparisonToCurrent = effectiveCost - currentHousing;
+            if (comparisonToCurrent > 0) {
+                recommendation += ` This would cost ${formatCurrency(comparisonToCurrent)} more per month than your current housing.`;
+            } else {
+                recommendation += ` This would save ${formatCurrency(Math.abs(comparisonToCurrent))} per month compared to your current housing.`;
+            }
+            
+            analysisText.innerHTML = recommendation;
+            analysisBox.className = `result-box ${boxClass}`;
+            
+            generateOverallRecommendation(effectivePercent, dti, totalInitial, downPayment);
+        }
+        
+        function calculateLongTerm() {
+            const targetHomePrice = parseFloat(document.getElementById('targetHomePrice').value) || 525000;
+            const downPaymentAmount = parseFloat(document.getElementById('downPaymentAmount').value) || 35000;
+            const interestRate = parseFloat(document.getElementById('interestRate').value) || 7.2;
+            const loanTerm = parseInt(document.getElementById('loanTerm').value) || 30;
+            const appreciationRate = parseFloat(document.getElementById('appreciationRate').value) || 3;
+            const rentGrowthRate = parseFloat(document.getElementById('rentGrowthRate').value) || 4;
+            const currentHousing = parseFloat(document.getElementById('currentHousing').value) || 2200;
+            
+            const downPaymentUsed = Math.min(downPaymentAmount, targetHomePrice * 0.2);
+            const loanAmount = targetHomePrice - downPaymentUsed;
+            const monthlyRate = interestRate / 100 / 12;
+            const numPayments = loanTerm * 12;
+            
+            const monthlyPayment = loanAmount > 0 ? 
+                (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                (Math.pow(1 + monthlyRate, numPayments) - 1) : 0;
+            
+            const propertyTax = (targetHomePrice * 0.015) / 12;
+            const insurance = (targetHomePrice * 0.0025) / 12;
+            const hoa = parseFloat(document.getElementById('hoaFees').value) || 0;
+            const totalMonthlyPayment = monthlyPayment + propertyTax + insurance + 300 + (targetHomePrice * 0.01) / 12 + hoa;
+            
+            const tableBody = document.getElementById('projectionTableBody');
+            const years = Array.from({ length: 30 + 1 }, (_, i) => i);
+            let cumulativeOwning = 0;
+            let cumulativeRenting = 0;
+            
+            tableBody.innerHTML = years.map(year => {
+                const homeValue = targetHomePrice * Math.pow(1 + appreciationRate / 100, year);
+                const monthsElapsed = year * 12;
+                const remainingBalance = calculateRemainingBalance(loanAmount, monthlyRate, numPayments, monthsElapsed);
+                const equity = homeValue - remainingBalance;
+                const currentRent = currentHousing * Math.pow(1 + rentGrowthRate / 100, year);
+                
+                cumulativeOwning += totalMonthlyPayment * 12;
+                cumulativeRenting += currentRent * 12;
+                
+                const netPosition = equity - (cumulativeOwning - cumulativeRenting);
+                
+                return `
+                    <tr class="${netPosition > 0 ? 'scenario-conservative' : 'scenario-realistic'}">
+                        <td><strong>Year ${year}</strong></td>
+                        <td>${formatCurrency(homeValue)}</td>
+                        <td>${formatCurrency(remainingBalance)}</td>
+                        <td>${formatCurrency(equity)}</td>
+                        <td>${formatCurrency(totalMonthlyPayment)}</td>
+                        <td>${formatCurrency(cumulativeOwning)}</td>
+                        <td>${formatCurrency(cumulativeRenting)}</td>
+                        <td class="${netPosition > 0 ? 'positive' : 'negative'}">${formatCurrency(netPosition)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function calculateRemainingBalance(originalBalance, monthlyRate, totalMonths, monthsElapsed) {
+            if (monthsElapsed >= totalMonths || originalBalance <= 0) return 0;
+            
+            const monthlyPayment = (originalBalance * monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) / 
+                (Math.pow(1 + monthlyRate, totalMonths) - 1);
+            
+            const remainingMonths = totalMonths - monthsElapsed;
+            const remainingBalance = monthlyPayment * (Math.pow(1 + monthlyRate, remainingMonths) - 1) / 
+                (monthlyRate * Math.pow(1 + monthlyRate, remainingMonths));
+            
+            return Math.max(0, remainingBalance);
+        }
+        
+        function generateOverallRecommendation(effectivePercent, dti, totalInitial, availableDownPayment) {
+            const recommendationBox = document.getElementById('recommendationBox');
+            const recommendation = document.getElementById('recommendation');
+            
+            let recommendationText = '';
+            let boxClass = '';
+            
+            if (totalInitial > availableDownPayment * 2) {
+                recommendationText = `Not Ready to Buy - You need ${formatCurrency(totalInitial)} upfront but only have ${formatCurrency(availableDownPayment)} for down payment. Build more savings first.`;
+                boxClass = 'negative';
+            } else if (effectivePercent <= 25 && dti <= 36) {
+                recommendationText = `Excellent Time to Buy - Your finances are in great shape for homeownership. Housing costs are well within recommended guidelines.`;
+                boxClass = 'positive';
+            } else if (effectivePercent <= 30 && dti <= 43) {
+                recommendationText = `Good Time to Buy - You can afford this home, though it will be a significant portion of your budget. Ensure you have stable income and emergency funds.`;
+                boxClass = 'positive';
+            } else if (effectivePercent <= 40 && dti <= 50) {
+                recommendationText = `Proceed with Caution - This home stretches your budget significantly. Consider a less expensive home or wait until your income increases.`;
+                boxClass = 'warning';
+            } else {
+                recommendationText = `Not Recommended - This home is beyond your current financial capacity. Look for a less expensive property or focus on increasing income/reducing debt first.`;
+                boxClass = 'negative';
+            }
+            
+            recommendation.innerHTML = recommendationText;
+            recommendationBox.className = `result-box wide-section ${boxClass}`;
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleIncomeType();
+            calculate();
+        });
+    </script>
+</body>
+
+</html>
