@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive House Hacking Analyzer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .wide-section {
+            grid-column: 1 / -1;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            grid-column: 1 / -1;
+        }
+
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        h3 {
+            color: #555;
+            margin: 15px 0 10px 0;
+            font-size: 1em;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 0.9em;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+        }
+
+        .result-box {
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-weight: bold;
+            border: 1px solid #e9ecef;
+        }
+
+        .positive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .neutral {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9em;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .scenario-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.85em;
+        }
+
+        .scenario-table th,
+        .scenario-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .scenario-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .scenario-conservative {
+            background: #d4edda;
+        }
+
+        .scenario-realistic {
+            background: #e2e3e5;
+        }
+
+        .scenario-higher {
+            background: #f8d7da;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            border-bottom-color: #3498db;
+            color: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .rental-unit {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px 15px 15px 35px;
+            margin-bottom: 15px;
+            position: relative;
+            cursor: grab;
+            transition: all 0.2s;
+        }
+
+        .rental-unit:hover {
+            background: #f1f3f4;
+            border-color: #3498db;
+        }
+
+        .rental-unit.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .rental-unit.drag-over {
+            border-color: #3498db;
+            background: #e7f3ff;
+        }
+
+        .unit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .unit-name-input {
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 1em;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .unit-name-input:focus {
+            background: white;
+            border: 1px solid #3498db;
+            border-radius: 3px;
+            padding: 2px 6px;
+            cursor: text;
+        }
+
+        .roommate-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85em;
+            color: #666;
+            margin: 0 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #ddd;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #3498db;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .remove-unit-btn {
+            position: relative;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.75em;
+        }
+
+        .unit-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .drag-handle {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 1.2em;
+            cursor: grab;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 280px;
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -140px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8em;
+            line-height: 1.3;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .save-load-section {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .save-load-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .save-load-content {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .save-load-content.active {
+            display: block;
+        }
+
+        .save-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .save-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+
+        .saved-configs {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            background: white;
+        }
+
+        .config-info {
+            flex: 1;
+        }
+
+        .config-name {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .config-details {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s;
+        }
+
+        .expand-icon.expanded {
+            transform: rotate(90deg);
+        }
+
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 400px;
+            margin: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            color: #dc3545;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .container {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .section {
+            padding: 15px;
+        }
+
+        .unit-inputs {
+            grid-template-columns: 1fr;
+        }
+
+        .tooltip .tooltiptext {
+            width: 240px;
+            margin-left: -120px;
+        }
+
+        .save-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .config-item {
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .config-actions {
+            justify-content: center;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <div class="main-grid">
+        <h1>Comprehensive House Hacking Analyzer</h1>
+
+        <div class="save-load-section wide-section">
+            <div class="save-load-header" onclick="toggleSaveLoad()">
+                <span>💾 Save & Load Configurations</span>
+                <span class="expand-icon" id="saveLoadIcon">▶</span>
+            </div>
+            <div class="save-load-content" id="saveLoadContent">
+                <div class="save-controls">
+                    <input type="text" class="save-input" id="configName"
+                        placeholder="Enter configuration name (e.g., 'Duplex on Main St')">
+                    <button class="btn btn-primary" onclick="saveConfiguration()">💾 Save Current</button>
+                    <button class="btn btn-secondary" onclick="exportConfiguration()">📤 Export</button>
+                    <button class="btn btn-success" onclick="document.getElementById('importFile').click()">📥
+                        Import</button>
+                    <input type="file" id="importFile" style="display: none" accept=".json"
+                        onchange="importConfiguration(event)">
+                </div>
+                <div id="savedConfigurations" class="saved-configs">
+                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                        No saved configurations yet. Save your current setup to get started!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Current Housing Situation</h2>
+            <div class="input-group">
+                <label class="tooltip">
+                    Current Monthly Rent/Housing Cost ($)
+                    <span class="tooltiptext">Your current monthly rent or mortgage payment. This is your baseline to
+                        compare the house hack against.</span>
+                </label>
+                <input type="number" id="currentHousing" value="730" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label class="tooltip" id="incomeLabel">
+                    Your Annual Income ($) - <strong id="incomeTypeDisplay">GROSS</strong>
+                    <span class="tooltiptext" id="incomeTooltip">Your total annual income before taxes. Used to
+                        calculate housing-to-income ratios (recommended: keep housing under 25-30% of gross
+                        income).</span>
+                </label>
+                <input type="number" id="annualIncome" value="160000" oninput="calculate()">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="useAfterTaxIncome" onchange="toggleIncomeType()">
+                <label class="tooltip" for="useAfterTaxIncome">
+                    Use After-Tax Income for Analysis
+                    <span class="tooltiptext">Check this to use your take-home pay instead of gross income. This gives a
+                        more realistic view of affordability but lending guidelines typically use gross income.</span>
+                </label>
+            </div>
+            <div id="incomeWarning" class="result-box warning" style="display: none; margin-top: 10px;">
+                <div><strong>⚠️ Using After-Tax Income</strong></div>
+                <div>Analysis shows affordability based on take-home pay. Remember: lenders typically qualify you based
+                    on gross income.</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Property Details</h2>
+            <div class="input-group">
+                <label class="tooltip">
+                    Purchase Price ($)
+                    <span class="tooltiptext">The total price you'll pay for the property, excluding closing costs. This
+                        affects your loan amount, taxes, and insurance.</span>
+                </label>
+                <input type="number" id="purchasePrice" value="417000" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Down Payment (%)
+                    <span class="tooltiptext">Percentage of purchase price paid upfront. Owner-occupied properties often
+                        allow 3-5% down with FHA loans, while investment properties typically require 20-25%.</span>
+                </label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="downPayment" value="5" oninput="calculate()" style="flex: 1;">
+                    <span id="downPaymentDollar"
+                        style="font-size: 0.85em; color: #666; min-width: 80px; text-align: right;">$20,850</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Interest Rate (%)
+                    <span class="tooltiptext">Annual interest rate on your mortgage. Owner-occupied rates are typically
+                        0.25-0.75% lower than investment property rates.</span>
+                </label>
+                <input type="number" id="interestRate" value="7.2" step="0.1" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Loan Term (years)
+                    <span class="tooltiptext">Length of your mortgage. 30-year loans have lower monthly payments but
+                        higher total interest. 15-year loans build equity faster.</span>
+                </label>
+                <input type="number" id="loanTerm" value="30" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Closing Costs ($)
+                    <span class="tooltiptext">One-time fees to complete the purchase: title insurance, inspections,
+                        attorney fees, loan origination. Typically 1.5-3% of purchase price.</span>
+                </label>
+                <input type="number" id="closingCosts" value="10000" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Renovation Budget ($)
+                    <span class="tooltiptext">Estimated cost to make the property rentable and livable. Include
+                        painting, flooring, kitchen/bath updates, and any necessary repairs.</span>
+                </label>
+                <input type="number" id="rehabCosts" value="25000" oninput="calculate()">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="isRehabFinanced" onchange="calculate()">
+                <label class="tooltip" for="isRehabFinanced">
+                    Finance Renovations (FHA 203k style)
+                    <span class="tooltiptext">If checked, renovation costs are added to your loan amount (like FHA
+                        203k). If unchecked, renovation costs are paid out-of-pocket.</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Rental Income Scenarios</h2>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+                <button onclick="addRentalUnit()"
+                    style="background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">+
+                    Add Unit</button>
+            </div>
+            <div id="rentalUnitsContainer">
+                <!-- Dynamic rental units will be inserted here -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Operating Expenses</h2>
+            <div class="input-group">
+                <label class="tooltip">
+                    Property Tax Rate (%)
+                    <span class="tooltiptext">Annual property tax as percentage of property value. Check local tax
+                        records or ask your agent. Typical range: 0.5-3% depending on location.</span>
+                </label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="taxRate" value="2.25" step="0.25" oninput="calculate()" style="flex: 1;">
+                    <span id="taxRateDollar"
+                        style="font-size: 0.85em; color: #666; min-width: 80px; text-align: right;">$783/mo</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Home Insurance (monthly) ($)
+                    <span class="tooltiptext">Monthly insurance premium. Multi-family properties cost more than
+                        single-family. Get quotes for accurate estimates. Typical: $200-500/month.</span>
+                </label>
+                <input type="number" id="insurance" value="400" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Maintenance Reserve (%)
+                    <span class="tooltiptext">Annual maintenance as % of property value. Covers repairs, HVAC service,
+                        plumbing, etc. Conservative: 1-2% of property value annually.</span>
+                </label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="maintenancePercent" value="1.5" step="0.1" oninput="calculate()"
+                        style="flex: 1;">
+                    <span id="maintenancePercentDollar"
+                        style="font-size: 0.85em; color: #666; min-width: 80px; text-align: right;">$521/mo</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Vacancy Rate (%)
+                    <span class="tooltiptext">Percentage of time units are empty. Accounts for tenant turnover, repairs
+                        between tenants. Conservative estimate: 5-10%.</span>
+                </label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="vacancyRate" value="7" oninput="calculate()" style="flex: 1;">
+                    <span id="vacancyRateDollar"
+                        style="font-size: 0.85em; color: #666; min-width: 80px; text-align: right;">$231/mo</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Utilities - Common Areas ($)
+                    <span class="tooltiptext">Monthly cost for shared utilities: hallway lights, basement power, shared
+                        laundry, etc. Varies widely by property size and setup.</span>
+                </label>
+                <input type="number" id="commonUtilities" value="150" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Your Personal Utilities ($)
+                    <span class="tooltiptext">Monthly utilities for your unit: electricity, gas, internet, water. This
+                        is part of your housing cost in the analysis.</span>
+                </label>
+                <input type="number" id="personalUtilities" value="200" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label class="tooltip">
+                    Professional Services ($)
+                    <span class="tooltiptext">Monthly average for accountant, legal advice, property inspections, etc.
+                        Budget for tax prep and occasional legal consultation.</span>
+                </label>
+                <input type="number" id="professionalServices" value="170" oninput="calculate()">
+            </div>
+        </div>
+
+
+        <div class="section wide-section">
+            <h2>Scenario Analysis</h2>
+            <div class="result-box neutral" style="margin-bottom: 15px;">
+                <div><strong>Income Analysis Basis:</strong> <span id="analysisIncomeType">GROSS Income</span> - <span
+                        id="monthlyIncomeDisplay">$13,333/month</span></div>
+            </div>
+            <div class="tabs" id="scenarioTabs">
+                <div class="tab active" onclick="showTab('noRoommate')">Without Roommate</div>
+                <div class="tab" id="roommateTab" onclick="showTab('withRoommate')" style="display: none;">With Roommate
+                </div>
+            </div>
+
+            <div id="noRoommate" class="tab-content active">
+                <table class="scenario-table">
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Monthly Net Cost</th>
+                            <th>Annual Net Cost</th>
+                            <th>vs Current Housing</th>
+                            <th id="incomePercentHeader">% of GROSS Income</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="scenario-conservative">
+                            <td>Conservative</td>
+                            <td id="conservativeNoRoom">$2,641</td>
+                            <td id="conservativeNoRoomAnnual">$31,692</td>
+                            <td id="conservativeNoRoomDiff">+$1,911</td>
+                            <td id="conservativeNoRoomPercent">20%</td>
+                            <td id="conservativeNoRoomStatus">✅ Good</td>
+                        </tr>
+                        <tr class="scenario-realistic">
+                            <td>Realistic</td>
+                            <td id="realisticNoRoom">$3,924</td>
+                            <td id="realisticNoRoomAnnual">$47,088</td>
+                            <td id="realisticNoRoomDiff">+$3,194</td>
+                            <td id="realisticNoRoomPercent">29%</td>
+                            <td id="realisticNoRoomStatus">⚠️ High</td>
+                        </tr>
+                        <tr class="scenario-higher">
+                            <td>Higher-End</td>
+                            <td id="higherNoRoom">$5,207</td>
+                            <td id="higherNoRoomAnnual">$62,484</td>
+                            <td id="higherNoRoomDiff">+$4,477</td>
+                            <td id="higherNoRoomPercent">39%</td>
+                            <td id="higherNoRoomStatus">❌ Risky</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="withRoommate" class="tab-content">
+                <table class="scenario-table">
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Monthly Net Cost</th>
+                            <th>Annual Net Cost</th>
+                            <th>vs Current Housing</th>
+                            <th id="incomePercentHeaderRoom">% of GROSS Income</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="scenario-conservative">
+                            <td>Conservative</td>
+                            <td id="conservativeRoom">$1,441</td>
+                            <td id="conservativeRoomAnnual">$17,292</td>
+                            <td id="conservativeRoomDiff">+$711</td>
+                            <td id="conservativeRoomPercent">13%</td>
+                            <td id="conservativeRoomStatus">✅ Excellent</td>
+                        </tr>
+                        <tr class="scenario-realistic">
+                            <td>Realistic</td>
+                            <td id="realisticRoom">$2,924</td>
+                            <td id="realisticRoomAnnual">$35,088</td>
+                            <td id="realisticRoomDiff">+$2,194</td>
+                            <td id="realisticRoomPercent">22%</td>
+                            <td id="realisticRoomStatus">✅ Good</td>
+                        </tr>
+                        <tr class="scenario-higher">
+                            <td>Higher-End</td>
+                            <td id="higherRoom">$4,407</td>
+                            <td id="higherRoomAnnual">$52,884</td>
+                            <td id="higherRoomDiff">+$3,677</td>
+                            <td id="higherRoomPercent">33%</td>
+                            <td id="higherRoomStatus">⚠️ High</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section wide-section">
+            <h2>Long-Term Projections</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                <div>
+                    <label class="tooltip">
+                        Annual Rental Income Growth (%)
+                        <span class="tooltiptext">Expected annual increase in rental income. Historical average is 3-5%.
+                            Conservative estimates use 3%, optimistic use 5%.</span>
+                    </label>
+                    <input type="number" id="rentalGrowthRate" value="4" step="0.1" oninput="calculate()"
+                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label class="tooltip">
+                        Annual Property Appreciation (%)
+                        <span class="tooltiptext">Expected annual property value increase. Long-term real estate average
+                            is 3-4%. Conservative estimates use 2-3%.</span>
+                    </label>
+                    <input type="number" id="appreciationRate" value="3" step="0.1" oninput="calculate()"
+                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </div>
+
+            <div class="result-box neutral" style="margin-bottom: 15px;">
+                <div><strong>Projection Basis:</strong> <span id="projectionIncomeType">GROSS Income</span> - Realistic
+                    Scenario (<span id="projectionScenario">Without Roommate</span>)</div>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="scenario-table" id="projectionTable">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Rental Income</th>
+                            <th>Monthly Cash Flow</th>
+                            <th>% of Income</th>
+                            <th>Property Value</th>
+                            <th>Mortgage Balance</th>
+                            <th>Total Equity</th>
+                            <th>Cumulative Cash Flow</th>
+                            <th>Total Return</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectionTableBody">
+                        <!-- Projection rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Investment Benefits</h2>
+            <div class="metric">
+                <span>Monthly Principal Paydown (Year 1):</span>
+                <span id="principalPaydown">$1,200</span>
+            </div>
+            <div class="metric">
+                <span>Annual Tax Benefits:</span>
+                <span id="taxBenefits">$8,000 - $15,000</span>
+            </div>
+            <div class="metric">
+                <span>Rental Income Growth:</span>
+                <span>~<span id="rentalGrowthDisplay">4%</span> annually</span>
+            </div>
+
+            <div class="result-box positive" style="margin-top: 15px;">
+                <div><strong>📈 Key Milestones:</strong></div>
+                <div style="margin-top: 8px; font-size: 0.9em;">
+                    <div><strong>Year 5:</strong> <span id="milestone5">$75K equity, $450/mo cash flow</span></div>
+                    <div><strong>Year 10:</strong> <span id="milestone10">$180K equity, $1,200/mo cash flow</span></div>
+                    <div><strong>Year 15:</strong> <span id="milestone15">$320K equity, $2,100/mo cash flow</span></div>
+                    <div><strong>Loan Payoff:</strong> <span id="milestonePayoff">$650K+ in total wealth</span></div>
+                </div>
+            </div>
+
+            <div class="result-box neutral" style="margin-top: 10px;">
+                <div><strong>💡 Break-Even Point:</strong></div>
+                <div>Cash flow turns positive: <span id="breakEvenYear">Year 3</span></div>
+                <div>Beats current housing cost: <span id="housingBreakEven">Year 2</span></div>
+            </div>
+        </div>
+        <div class="section">
+        <h2>Cost and Risks</h2>
+        <div class="metric">
+            <span>PITI (Monthly):</span>
+            <span id="pitiTotal">$5,017</span>
+        </div>
+        <div class="metric">
+            <span>Principal + Interest:</span>
+            <span id="principalInterest">$3,401</span>
+        </div>
+        <div class="metric">
+            <span>Property Taxes:</span>
+            <span id="monthlyTaxes">$830</span>
+        </div>
+        <div class="metric">
+            <span>Insurance (Home + PMI):</span>
+            <span id="totalInsurance">$786</span>
+        </div>
+        <div class="metric">
+            <span>Operating Expenses:</span>
+            <span id="operatingExpensesTotal">$1,133</span>
+        </div>
+        <div class="metric">
+            <span>Maintenance Reserve:</span>
+            <span id="maintenanceAmount">$663</span>
+        </div>
+
+        <div class="result-box warning">
+            <div><strong>Monthly Total Costs</strong></div>
+            <div style="margin-top: 5px;">
+                <div>Monthly: <span id="monthlyTotal">$6,149</span></div>
+                <div>Annual: <span id="annualTotal">$73,790</span></div>
+            </div>
+        </div>
+
+        <div class="result-box neutral">
+            <div><strong>Required Reserves</strong></div>
+            <div style="margin-top: 8px;">
+                <div>Emergency Fund: <span id="emergencyFund">$15,000-$25,000</span></div>
+                <div>Total Initial Investment: <span id="totalInitial">$58,825-$107,825</span></div>
+            </div>
+        </div>
+
+        <div class="result-box negative">
+            <div><strong>Key Risks</strong></div>
+            <div style="margin-top: 8px; font-size: 0.9em;">
+                <div>• Vacancy: Up to <span id="vacancyRisk">$2,585</span>/month loss</div>
+                <div>• Major Repairs: $10,000-$25,000</div>
+                <div>• Difficult Tenants: Legal costs</div>
+                <div>• Market Downturn: Reduced value</div>
+            </div>
+        </div>
+    
+    </div>
+
+    <div class="section wide-section">
+        <div class="result-box" id="recommendationBox">
+            <div id="recommendation">Calculating recommendation...</div>
+        </div>
+    </div>
+    </div>
+
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmModal" class="custom-modal">
+        <div class="modal-content">
+            <div class="modal-header">🗑️ Delete Configuration</div>
+            <div class="modal-body" id="confirmMessage">
+                Are you sure you want to delete this configuration?
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="hideConfirmModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global array to store rental units
+        let rentalUnits = [
+            { id: 1, name: 'Unit 1 (Garden/Basement)', minRent: 1800, maxRent: 2200, isRoommate: false },
+            { id: 2, name: 'Unit 2 (First Floor)', minRent: 1500, maxRent: 1650, isRoommate: false },
+            { id: 3, name: 'Roommate (Your Unit - Optional)', minRent: 800, maxRent: 1200, isRoommate: true }
+        ];
+        let nextUnitId = 4;
+        let draggedElement = null;
+
+        function initializeRentalUnits() {
+            const container = document.getElementById('rentalUnitsContainer');
+            container.innerHTML = '';
+            rentalUnits.forEach(unit => {
+                container.appendChild(createRentalUnitElement(unit));
+            });
+            updateRoommateTabVisibility();
+        }
+
+        function createRentalUnitElement(unit) {
+            const unitDiv = document.createElement('div');
+            unitDiv.className = 'rental-unit';
+            unitDiv.draggable = true;
+            unitDiv.dataset.unitId = unit.id;
+
+            // Add drag event listeners
+            unitDiv.addEventListener('dragstart', handleDragStart);
+            unitDiv.addEventListener('dragover', handleDragOver);
+            unitDiv.addEventListener('drop', handleDrop);
+            unitDiv.addEventListener('dragend', handleDragEnd);
+
+            unitDiv.innerHTML = `
+                <div class="drag-handle">⋮⋮</div>
+                <div class="unit-header">
+                    <input type="text" class="unit-name-input" value="${unit.name}" onchange="updateRentalUnit(${unit.id}, 'name', this.value)" title="Click to edit">
+                    <div class="roommate-toggle">
+                        <span>Roommate</span>
+                        <div class="toggle-switch ${unit.isRoommate ? 'active' : ''}" onclick="toggleRoommate(${unit.id})"></div>
+                    </div>
+                    <button class="remove-unit-btn" onclick="removeRentalUnit(${unit.id})" title="Remove unit">✕</button>
+                </div>
+                <div class="unit-inputs">
+                    <div class="input-group">
+                        <label class="tooltip">
+                            Min Rent ($)
+                            <span class="tooltiptext">Conservative/low-end rental estimate. Used in worst-case scenarios to ensure the deal still works.</span>
+                        </label>
+                        <input type="number" value="${unit.minRent}" oninput="updateRentalUnit(${unit.id}, 'minRent', this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label class="tooltip">
+                            Max Rent ($)
+                            <span class="tooltiptext">Optimistic/high-end rental estimate. Used in best-case scenarios. Base on current market rates.</span>
+                        </label>
+                        <input type="number" value="${unit.maxRent}" oninput="updateRentalUnit(${unit.id}, 'maxRent', this.value)">
+                    </div>
+                </div>
+            `;
+            return unitDiv;
+        }
+
+        function toggleRoommate(unitId) {
+            const unit = rentalUnits.find(u => u.id === unitId);
+            if (unit) {
+                unit.isRoommate = !unit.isRoommate;
+                // Update the visual toggle
+                const toggleElement = document.querySelector(`[data-unit-id="${unitId}"] .toggle-switch`);
+                if (toggleElement) {
+                    toggleElement.classList.toggle('active', unit.isRoommate);
+                }
+                updateRoommateTabVisibility();
+                calculate();
+            }
+        }
+
+        function updateRoommateTabVisibility() {
+            const hasRoommate = rentalUnits.some(unit => unit.isRoommate);
+            const roommateTab = document.getElementById('roommateTab');
+            const withRoommateContent = document.getElementById('withRoommate');
+
+            if (hasRoommate) {
+                roommateTab.style.display = 'block';
+            } else {
+                roommateTab.style.display = 'none';
+                // If roommate tab is active and we're hiding it, switch to no roommate tab
+                if (withRoommateContent.classList.contains('active')) {
+                    showTab('noRoommate');
+                }
+            }
+        }
+
+        // Drag and drop functionality
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.outerHTML);
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            this.classList.add('drag-over');
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            if (draggedElement !== this) {
+                const draggedId = parseInt(draggedElement.dataset.unitId);
+                const targetId = parseInt(this.dataset.unitId);
+
+                // Find indices
+                const draggedIndex = rentalUnits.findIndex(unit => unit.id === draggedId);
+                const targetIndex = rentalUnits.findIndex(unit => unit.id === targetId);
+
+                // Reorder array
+                const draggedUnit = rentalUnits.splice(draggedIndex, 1)[0];
+                rentalUnits.splice(targetIndex, 0, draggedUnit);
+
+                // Refresh display
+                initializeRentalUnits();
+                calculate();
+            }
+
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            // Clean up
+            document.querySelectorAll('.rental-unit').forEach(unit => {
+                unit.classList.remove('drag-over', 'dragging');
+            });
+            draggedElement = null;
+        }
+
+        function addRentalUnit() {
+            const newUnit = {
+                id: nextUnitId++,
+                name: `Unit ${rentalUnits.length + 1}`,
+                minRent: 1000,
+                maxRent: 1200,
+                isRoommate: false
+            };
+            rentalUnits.push(newUnit);
+
+            const container = document.getElementById('rentalUnitsContainer');
+            container.appendChild(createRentalUnitElement(newUnit));
+            updateRoommateTabVisibility();
+            calculate();
+        }
+
+        function removeRentalUnit(unitId) {
+            if (rentalUnits.length <= 1) {
+                alert('You must have at least one rental unit.');
+                return;
+            }
+
+            rentalUnits = rentalUnits.filter(unit => unit.id !== unitId);
+            initializeRentalUnits();
+            calculate();
+        }
+
+        function updateRentalUnit(unitId, field, value) {
+            const unit = rentalUnits.find(u => u.id === unitId);
+            if (unit) {
+                if (field === 'minRent' || field === 'maxRent') {
+                    unit[field] = parseFloat(value) || 0;
+                } else {
+                    unit[field] = value;
+                }
+                calculate();
+            }
+        }
+
+        function toggleSaveLoad() {
+            const content = document.getElementById('saveLoadContent');
+            const icon = document.getElementById('saveLoadIcon');
+            const isActive = content.classList.contains('active');
+
+            if (isActive) {
+                content.classList.remove('active');
+                icon.classList.remove('expanded');
+            } else {
+                content.classList.add('active');
+                icon.classList.add('expanded');
+                displaySavedConfigurations();
+            }
+        }
+
+        function getCurrentConfiguration() {
+            return {
+                // Basic property details
+                currentHousing: parseFloat(document.getElementById('currentHousing').value) || 730,
+                annualIncome: parseFloat(document.getElementById('annualIncome').value) || 160000,
+                useAfterTaxIncome: document.getElementById('useAfterTaxIncome').checked,
+                purchasePrice: parseFloat(document.getElementById('purchasePrice').value) || 417000,
+                downPayment: parseFloat(document.getElementById('downPayment').value) || 5,
+                interestRate: parseFloat(document.getElementById('interestRate').value) || 7.2,
+                loanTerm: parseFloat(document.getElementById('loanTerm').value) || 30,
+                closingCosts: parseFloat(document.getElementById('closingCosts').value) || 10000,
+                rehabCosts: parseFloat(document.getElementById('rehabCosts').value) || 25000,
+                isRehabFinanced: document.getElementById('isRehabFinanced').checked,
+
+                // Operating expenses
+                taxRate: parseFloat(document.getElementById('taxRate').value) || 2.25,
+                insurance: parseFloat(document.getElementById('insurance').value) || 400,
+                maintenancePercent: parseFloat(document.getElementById('maintenancePercent').value) || 1.5,
+                vacancyRate: parseFloat(document.getElementById('vacancyRate').value) || 7,
+                commonUtilities: parseFloat(document.getElementById('commonUtilities').value) || 150,
+                personalUtilities: parseFloat(document.getElementById('personalUtilities').value) || 200,
+                professionalServices: parseFloat(document.getElementById('professionalServices').value) || 170,
+
+                // Long-term projection assumptions
+                rentalGrowthRate: parseFloat(document.getElementById('rentalGrowthRate').value) || 4,
+                appreciationRate: parseFloat(document.getElementById('appreciationRate').value) || 3,
+
+                // Rental units (deep copy)
+                rentalUnits: JSON.parse(JSON.stringify(rentalUnits)),
+                nextUnitId: nextUnitId,
+
+                // Metadata
+                savedAt: new Date().toISOString(),
+                version: "1.1"
+            };
+        }
+
+        function applyConfiguration(config) {
+            // Apply basic values
+            document.getElementById('currentHousing').value = config.currentHousing || 730;
+            document.getElementById('annualIncome').value = config.annualIncome || 160000;
+            document.getElementById('useAfterTaxIncome').checked = config.useAfterTaxIncome || false;
+            document.getElementById('purchasePrice').value = config.purchasePrice || 417000;
+            document.getElementById('downPayment').value = config.downPayment || 5;
+            document.getElementById('interestRate').value = config.interestRate || 7.2;
+            document.getElementById('loanTerm').value = config.loanTerm || 30;
+            document.getElementById('closingCosts').value = config.closingCosts || 10000;
+            document.getElementById('rehabCosts').value = config.rehabCosts || 25000;
+            document.getElementById('isRehabFinanced').checked = config.isRehabFinanced || false;
+
+            // Operating expenses
+            document.getElementById('taxRate').value = config.taxRate || 2.25;
+            document.getElementById('insurance').value = config.insurance || 400;
+            document.getElementById('maintenancePercent').value = config.maintenancePercent || 1.5;
+            document.getElementById('vacancyRate').value = config.vacancyRate || 7;
+            document.getElementById('commonUtilities').value = config.commonUtilities || 150;
+            document.getElementById('personalUtilities').value = config.personalUtilities || 200;
+            document.getElementById('professionalServices').value = config.professionalServices || 170;
+
+            // Long-term projection assumptions (with backwards compatibility)
+            document.getElementById('rentalGrowthRate').value = config.rentalGrowthRate || 4;
+            document.getElementById('appreciationRate').value = config.appreciationRate || 3;
+
+            // Apply rental units
+            if (config.rentalUnits) {
+                rentalUnits = JSON.parse(JSON.stringify(config.rentalUnits));
+                nextUnitId = config.nextUnitId || 4;
+                initializeRentalUnits();
+            }
+
+            // Update UI states
+            toggleIncomeType();
+            calculate();
+        }
+
+        function saveConfiguration() {
+            const configName = document.getElementById('configName').value.trim();
+            if (!configName) {
+                alert('Please enter a name for this configuration.');
+                return;
+            }
+
+            const config = getCurrentConfiguration();
+            config.name = configName;
+
+            // Get existing configurations
+            const existing = JSON.parse(localStorage.getItem('houseHackConfigs') || '{}');
+
+            // Save new configuration
+            existing[configName] = config;
+            localStorage.setItem('houseHackConfigs', JSON.stringify(existing));
+
+            // Clear input and refresh display
+            document.getElementById('configName').value = '';
+            displaySavedConfigurations();
+
+            // Show success message
+            showNotification(`Configuration "${configName}" saved successfully!`, 'success');
+        }
+
+        function loadConfiguration(configName) {
+            const existing = JSON.parse(localStorage.getItem('houseHackConfigs') || '{}');
+            const config = existing[configName];
+
+            if (!config) {
+                alert('Configuration not found.');
+                return;
+            }
+
+            applyConfiguration(config);
+            showNotification(`Configuration "${configName}" loaded successfully!`, 'success');
+        }
+
+        function deleteConfiguration(configName) {
+            console.log('Delete function called for:', configName); // Debug log
+            showConfirmModal(`Are you sure you want to delete the configuration "${configName}"?`, function () {
+                const existing = JSON.parse(localStorage.getItem('houseHackConfigs') || '{}');
+                delete existing[configName];
+                localStorage.setItem('houseHackConfigs', JSON.stringify(existing));
+
+                displaySavedConfigurations();
+                showNotification(`Configuration "${configName}" deleted.`, 'info');
+            });
+        }
+
+        function showConfirmModal(message, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const messageEl = document.getElementById('confirmMessage');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+            messageEl.textContent = message;
+            modal.classList.add('show');
+
+            // Remove any existing event listeners
+            confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+            const newConfirmBtn = document.getElementById('confirmDeleteBtn');
+
+            newConfirmBtn.addEventListener('click', function () {
+                onConfirm();
+                hideConfirmModal();
+            });
+        }
+
+        function hideConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('show');
+        }
+
+        // Close modal when clicking outside of it
+        document.addEventListener('click', function (event) {
+            const modal = document.getElementById('confirmModal');
+            if (event.target === modal) {
+                hideConfirmModal();
+            }
+        });
+
+        function exportConfiguration() {
+            const configName = document.getElementById('configName').value.trim() || 'HouseHackConfig';
+            const config = getCurrentConfiguration();
+            config.name = configName;
+
+            const dataStr = JSON.stringify(config, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${configName.replace(/[^a-z0-9]/gi, '_')}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showNotification('Configuration exported successfully!', 'success');
+        }
+
+        function importConfiguration(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const config = JSON.parse(e.target.result);
+
+                    // Validate the configuration
+                    if (!config.purchasePrice && !config.rentalUnits) {
+                        throw new Error('Invalid configuration file');
+                    }
+
+                    applyConfiguration(config);
+                    showNotification(`Configuration imported successfully!`, 'success');
+                } catch (error) {
+                    alert('Error importing configuration: Invalid file format.');
+                }
+            };
+            reader.readAsText(file);
+
+            // Reset file input
+            event.target.value = '';
+        }
+
+        function displaySavedConfigurations() {
+            const container = document.getElementById('savedConfigurations');
+            const existing = JSON.parse(localStorage.getItem('houseHackConfigs') || '{}');
+            const configs = Object.keys(existing);
+
+            if (configs.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                        No saved configurations yet. Save your current setup to get started!
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = configs.map(configName => {
+                const config = existing[configName];
+                const savedDate = new Date(config.savedAt).toLocaleDateString();
+                const purchasePrice = formatCurrency(config.purchasePrice || 0);
+
+                return `
+                    <div class="config-item">
+                        <div class="config-info">
+                            <div class="config-name">${configName}</div>
+                            <div class="config-details">
+                                ${purchasePrice} • ${config.rentalUnits?.length || 0} units • Saved ${savedDate}
+                            </div>
+                        </div>
+                        <div class="config-actions">
+                            <button class="btn btn-success load-config-btn" data-config-name="${configName}" title="Load this configuration">
+                                📂 Load
+                            </button>
+                            <button class="btn btn-danger delete-config-btn" data-config-name="${configName}" title="Delete this configuration">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add event listeners for the buttons
+            container.querySelectorAll('.load-config-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const configName = this.getAttribute('data-config-name');
+                    loadConfiguration(configName);
+                });
+            });
+
+            container.querySelectorAll('.delete-config-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const configName = this.getAttribute('data-config-name');
+                    deleteConfiguration(configName);
+                });
+            });
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `result-box ${type === 'success' ? 'positive' : type === 'error' ? 'negative' : 'neutral'}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+                max-width: 300px;
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+            `;
+            notification.innerHTML = `<div><strong>${message}</strong></div>`;
+
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function toggleIncomeType() {
+            const useAfterTax = document.getElementById('useAfterTaxIncome').checked;
+            const incomeTypeDisplay = document.getElementById('incomeTypeDisplay');
+            const incomeTooltip = document.getElementById('incomeTooltip');
+            const incomeWarning = document.getElementById('incomeWarning');
+            const analysisIncomeType = document.getElementById('analysisIncomeType');
+            const incomePercentHeader = document.getElementById('incomePercentHeader');
+            const incomePercentHeaderRoom = document.getElementById('incomePercentHeaderRoom');
+
+            if (useAfterTax) {
+                incomeTypeDisplay.textContent = 'AFTER-TAX';
+                incomeTypeDisplay.style.color = '#e67e22';
+                incomeTooltip.textContent = 'Your take-home pay after taxes and deductions. This gives a more realistic view of what you can actually afford to spend on housing.';
+                incomeWarning.style.display = 'block';
+                analysisIncomeType.innerHTML = '<span style="color: #e67e22;">AFTER-TAX Income</span>';
+                incomePercentHeader.textContent = '% of AFTER-TAX Income';
+                incomePercentHeaderRoom.textContent = '% of AFTER-TAX Income';
+            } else {
+                incomeTypeDisplay.textContent = 'GROSS';
+                incomeTypeDisplay.style.color = '#27ae60';
+                incomeTooltip.textContent = 'Your total annual income before taxes. Used to calculate housing-to-income ratios (recommended: keep housing under 25-30% of gross income).';
+                incomeWarning.style.display = 'none';
+                analysisIncomeType.innerHTML = '<span style="color: #27ae60;">GROSS Income</span>';
+                incomePercentHeader.textContent = '% of GROSS Income';
+                incomePercentHeaderRoom.textContent = '% of GROSS Income';
+            }
+
+            calculate();
+        }
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Find and activate the correct tab
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                if ((tabName === 'noRoommate' && tab.textContent.includes('Without')) ||
+                    (tabName === 'withRoommate' && tab.textContent.includes('With'))) {
+                    tab.classList.add('active');
+                }
+            });
+        }
+
+        function calculate() {
+            // Get input values
+            const currentHousing = parseFloat(document.getElementById('currentHousing').value) || 730;
+            const annualIncome = parseFloat(document.getElementById('annualIncome').value) || 160000;
+            const useAfterTaxIncome = document.getElementById('useAfterTaxIncome').checked;
+            const monthlyIncome = annualIncome / 12;
+            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 417000;
+            const downPaymentPct = parseFloat(document.getElementById('downPayment').value) || 5;
+            const interestRate = parseFloat(document.getElementById('interestRate').value) || 7.2;
+            const loanTerm = parseFloat(document.getElementById('loanTerm').value) || 30;
+            const closingCosts = parseFloat(document.getElementById('closingCosts').value) || 10000;
+            const rehabCosts = parseFloat(document.getElementById('rehabCosts').value) || 25000;
+            const isRehabFinanced = document.getElementById('isRehabFinanced').checked;
+
+            // Operating expenses
+            const taxRate = parseFloat(document.getElementById('taxRate').value) || 2.25;
+            const insurance = parseFloat(document.getElementById('insurance').value) || 400;
+            const maintenancePercent = parseFloat(document.getElementById('maintenancePercent').value) || 1.5;
+            const vacancyRate = parseFloat(document.getElementById('vacancyRate').value) || 7;
+            const commonUtilities = parseFloat(document.getElementById('commonUtilities').value) || 150;
+            const personalUtilities = parseFloat(document.getElementById('personalUtilities').value) || 200;
+            const professionalServices = parseFloat(document.getElementById('professionalServices').value) || 170;
+
+            // Update monthly income display
+            document.getElementById('monthlyIncomeDisplay').textContent = formatCurrency(monthlyIncome);
+
+            // Calculate loan details - KEY CHANGE: Add rehab to loan if financed
+            const totalProjectCost = purchasePrice + (isRehabFinanced ? rehabCosts : 0);
+            const downPaymentAmount = totalProjectCost * (downPaymentPct / 100);
+            const loanAmount = totalProjectCost - downPaymentAmount;
+            const monthlyRate = interestRate / 100 / 12;
+            const numPayments = loanTerm * 12;
+            const monthlyPayment = (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
+                (Math.pow(1 + monthlyRate, numPayments) - 1);
+
+            // Calculate PITI (using original purchase price for taxes)
+            const propertyTaxes = (purchasePrice * taxRate / 100) / 12;
+            const pmi = (loanAmount * 0.8) / 100 / 12; // Assuming 0.8% PMI
+            const totalInsuranceAmount = insurance + pmi;
+            const piti = monthlyPayment + propertyTaxes + totalInsuranceAmount;
+
+            // Calculate operating expenses
+            const maintenanceReserve = (purchasePrice * maintenancePercent / 100) / 12;
+            const totalOperatingExpenses = maintenanceReserve + commonUtilities + personalUtilities + professionalServices;
+
+            // Update percentage-based dollar displays
+            document.getElementById('downPaymentDollar').textContent = formatCurrency(downPaymentAmount);
+            document.getElementById('taxRateDollar').textContent = formatCurrency(propertyTaxes) + '/mo';
+            document.getElementById('maintenancePercentDollar').textContent = formatCurrency(maintenanceReserve) + '/mo';
+
+            // Calculate total rental income for vacancy calculation
+            let totalPotentialRental = 0;
+            rentalUnits.forEach(unit => {
+                totalPotentialRental += (unit.minRent + unit.maxRent) / 2;
+            });
+            const vacancyLoss = totalPotentialRental * (vacancyRate / 100);
+            document.getElementById('vacancyRateDollar').textContent = formatCurrency(vacancyLoss) + '/mo';
+
+            // Update cost breakdown display
+            document.getElementById('pitiTotal').textContent = formatCurrency(piti);
+            document.getElementById('principalInterest').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('monthlyTaxes').textContent = formatCurrency(propertyTaxes);
+            document.getElementById('totalInsurance').textContent = formatCurrency(totalInsuranceAmount);
+            document.getElementById('operatingExpensesTotal').textContent = formatCurrency(totalOperatingExpenses);
+            document.getElementById('maintenanceAmount').textContent = formatCurrency(maintenanceReserve);
+
+            const monthlyTotalCosts = piti + totalOperatingExpenses;
+            const annualTotalCosts = monthlyTotalCosts * 12;
+            document.getElementById('monthlyTotal').textContent = formatCurrency(monthlyTotalCosts);
+            document.getElementById('annualTotal').textContent = formatCurrency(annualTotalCosts);
+
+            // Update vacancy risk amount
+            document.getElementById('vacancyRisk').textContent = formatCurrency(totalPotentialRental);
+
+            // Calculate rental income scenarios from dynamic units
+            let totalRentalMin = 0;
+            let totalRentalMax = 0;
+            let roommateRentalMin = 0;
+            let roommateRentalMax = 0;
+
+            rentalUnits.forEach(unit => {
+                if (unit.isRoommate) {
+                    roommateRentalMin += unit.minRent;
+                    roommateRentalMax += unit.maxRent;
+                } else {
+                    totalRentalMin += unit.minRent;
+                    totalRentalMax += unit.maxRent;
+                }
+            });
+
+            const totalRentalAvg = (totalRentalMin + totalRentalMax) / 2;
+
+            // Calculate with roommate
+            const totalRentalWithRoommateMin = totalRentalMin + roommateRentalMin;
+            const totalRentalWithRoommateMax = totalRentalMax + roommateRentalMax;
+            const totalRentalWithRoommateAvg = (totalRentalWithRoommateMin + totalRentalWithRoommateMax) / 2;
+
+            // Calculate effective rental income (after vacancy)
+            const vacancyMultiplier = (100 - vacancyRate) / 100;
+            const effectiveRentalMin = totalRentalMin * vacancyMultiplier;
+            const effectiveRentalMax = totalRentalMax * vacancyMultiplier;
+            const effectiveRentalAvg = totalRentalAvg * vacancyMultiplier;
+
+            const effectiveRentalWithRoommateMin = totalRentalWithRoommateMin * vacancyMultiplier;
+            const effectiveRentalWithRoommateMax = totalRentalWithRoommateMax * vacancyMultiplier;
+            const effectiveRentalWithRoommateAvg = totalRentalWithRoommateAvg * vacancyMultiplier;
+
+            // Calculate net costs for each scenario
+            const totalExpenses = piti + totalOperatingExpenses;
+
+            // Without roommate scenarios
+            const conservativeNoRoom = totalExpenses - effectiveRentalMax;
+            const realisticNoRoom = totalExpenses - effectiveRentalAvg;
+            const higherNoRoom = totalExpenses - effectiveRentalMin;
+
+            // With roommate scenarios  
+            const conservativeRoom = totalExpenses - effectiveRentalWithRoommateMax;
+            const realisticRoom = totalExpenses - effectiveRentalWithRoommateAvg;
+            const higherRoom = totalExpenses - effectiveRentalWithRoommateMin;
+
+            // Update scenario tables
+            updateScenarioRow('conservativeNoRoom', conservativeNoRoom, currentHousing, monthlyIncome);
+            updateScenarioRow('realisticNoRoom', realisticNoRoom, currentHousing, monthlyIncome);
+            updateScenarioRow('higherNoRoom', higherNoRoom, currentHousing, monthlyIncome);
+
+            updateScenarioRow('conservativeRoom', conservativeRoom, currentHousing, monthlyIncome);
+            updateScenarioRow('realisticRoom', realisticRoom, currentHousing, monthlyIncome);
+            updateScenarioRow('higherRoom', higherRoom, currentHousing, monthlyIncome);
+
+            // Calculate investment metrics - KEY CHANGE: Only add rehab to cash if not financed
+            const totalCashInvested = downPaymentAmount + closingCosts + (isRehabFinanced ? 0 : rehabCosts);
+            const principalPaydown = calculatePrincipalPaydown(monthlyPayment, monthlyRate);
+
+            document.getElementById('principalPaydown').textContent = formatCurrency(principalPaydown);
+
+            // Calculate emergency fund and total initial investment
+            const emergencyFundMin = Math.max(totalExpenses * 3, 15000);
+            const emergencyFundMax = Math.max(totalExpenses * 6, 25000);
+            const totalInitialMin = totalCashInvested + emergencyFundMin;
+            const totalInitialMax = totalCashInvested + emergencyFundMax;
+
+            document.getElementById('emergencyFund').textContent =
+                `${formatCurrency(emergencyFundMin)}-${formatCurrency(emergencyFundMax)}`;
+            document.getElementById('totalInitial').textContent =
+                `${formatCurrency(totalInitialMin)}-${formatCurrency(totalInitialMax)}`;
+
+            // Generate recommendation
+            generateRecommendation(realisticNoRoom, realisticRoom, monthlyIncome, currentHousing, annualIncome, useAfterTaxIncome);
+
+            // Generate long-term projections
+            generateLongTermProjections(totalExpenses, effectiveRentalAvg, effectiveRentalWithRoommateAvg, monthlyIncome, loanAmount, monthlyRate, purchasePrice, useAfterTaxIncome);
+        }
+
+        function generateLongTermProjections(totalExpenses, effectiveRentalNoRoom, effectiveRentalWithRoom, monthlyIncome, loanAmount, monthlyRate, purchasePrice, useAfterTaxIncome) {
+            const rentalGrowthRate = parseFloat(document.getElementById('rentalGrowthRate').value) || 4;
+            const appreciationRate = parseFloat(document.getElementById('appreciationRate').value) || 3;
+            const hasRoommate = rentalUnits.some(unit => unit.isRoommate);
+            const baseRentalIncome = hasRoommate ? effectiveRentalWithRoom : effectiveRentalNoRoom;
+            const baseCashFlow = baseRentalIncome - totalExpenses;
+
+            // Update display elements
+            document.getElementById('rentalGrowthDisplay').textContent = rentalGrowthRate + '%';
+            document.getElementById('projectionIncomeType').innerHTML = useAfterTaxIncome ?
+                '<span style="color: #e67e22;">AFTER-TAX Income</span>' :
+                '<span style="color: #27ae60;">GROSS Income</span>';
+            document.getElementById('projectionScenario').textContent = hasRoommate ? 'With Roommate' : 'Without Roommate';
+
+            const years = [1, 5, 10, 15, 20, 25, 30];
+            const projections = [];
+            let cumulativeCashFlow = 0;
+            let breakEvenCashFlowYear = null;
+            let breakEvenHousingYear = null;
+            const currentHousing = parseFloat(document.getElementById('currentHousing').value) || 730;
+
+            years.forEach(year => {
+                // Calculate rental income growth
+                const grownRentalIncome = baseRentalIncome * Math.pow(1 + rentalGrowthRate / 100, year);
+
+                // Calculate property value appreciation  
+                const propertyValue = purchasePrice * Math.pow(1 + appreciationRate / 100, year);
+
+                // Calculate remaining mortgage balance
+                const monthsElapsed = year * 12;
+                const remainingBalance = calculateRemainingBalance(loanAmount, monthlyRate, 360, monthsElapsed);
+
+                // Calculate equity (property value - mortgage balance)
+                const totalEquity = propertyValue - remainingBalance;
+
+                // Calculate current year cash flow
+                const cashFlow = grownRentalIncome - totalExpenses;
+                const incomePercent = (Math.max(0, -cashFlow) / monthlyIncome) * 100; // Only show positive percentages for costs
+
+                // Track cumulative cash flow (annual)
+                const annualCashFlow = cashFlow * 12;
+                cumulativeCashFlow += annualCashFlow;
+
+                // Calculate total return (equity + cumulative cash flow)
+                const totalReturn = totalEquity + cumulativeCashFlow;
+
+                // Check break-even points
+                if (!breakEvenCashFlowYear && cashFlow > 0) {
+                    breakEvenCashFlowYear = year;
+                }
+                if (!breakEvenHousingYear && -cashFlow < currentHousing) {
+                    breakEvenHousingYear = year;
+                }
+
+                projections.push({
+                    year,
+                    rentalIncome: grownRentalIncome,
+                    cashFlow,
+                    incomePercent,
+                    propertyValue,
+                    mortgageBalance: remainingBalance,
+                    totalEquity,
+                    cumulativeCashFlow,
+                    totalReturn
+                });
+            });
+
+            // Update projection table
+            const tableBody = document.getElementById('projectionTableBody');
+            tableBody.innerHTML = projections.map(p => `
+                <tr class="${p.cashFlow > 0 ? 'scenario-conservative' : p.cashFlow > -500 ? 'scenario-realistic' : 'scenario-higher'}">
+                    <td><strong>Year ${p.year}</strong></td>
+                    <td>${formatCurrency(p.rentalIncome)}</td>
+                    <td>${formatCurrency(p.cashFlow)}</td>
+                    <td>${p.cashFlow >= 0 ? 'Positive' : p.incomePercent.toFixed(0) + '%'}</td>
+                    <td>${formatCurrency(p.propertyValue)}</td>
+                    <td>${formatCurrency(p.mortgageBalance)}</td>
+                    <td>${formatCurrency(p.totalEquity)}</td>
+                    <td>${formatCurrency(p.cumulativeCashFlow)}</td>
+                    <td>${formatCurrency(p.totalReturn)}</td>
+                </tr>
+            `).join('');
+
+            // Update investment benefits milestones
+            const proj5 = projections.find(p => p.year === 5);
+            const proj10 = projections.find(p => p.year === 10);
+            const proj15 = projections.find(p => p.year === 15);
+            const proj30 = projections.find(p => p.year === 30);
+
+            console.log(projections)
+
+            if (proj5) {
+                document.getElementById('milestone5').textContent =
+                    `${formatCurrency(proj5.totalEquity / 1000)}K equity, ${formatCurrency(proj5.cashFlow)}/mo cash flow`;
+            }
+            if (proj10) {
+                document.getElementById('milestone10').textContent =
+                    `${formatCurrency(proj10.totalEquity / 1000)}K equity, ${formatCurrency(proj10.cashFlow)}/mo cash flow`;
+            }
+            if (proj15) {
+                document.getElementById('milestone15').textContent =
+                    `${formatCurrency(proj15.totalEquity / 1000)}K equity, ${formatCurrency(proj15.cashFlow)}/mo cash flow`;
+            }
+            if (proj30) {
+                document.getElementById('milestonePayoff').textContent =
+                    `${formatCurrency(proj30.totalReturn / 1000)}K+ in total wealth`;
+            }
+
+            // Update break-even displays
+            document.getElementById('breakEvenYear').textContent = breakEvenCashFlowYear ?
+                `Year ${breakEvenCashFlowYear}` : 'Beyond 30 years';
+            document.getElementById('housingBreakEven').textContent = breakEvenHousingYear ?
+                `Year ${breakEvenHousingYear}` : 'Year 1';
+        }
+
+        function calculateRemainingBalance(originalBalance, monthlyRate, totalMonths, monthsElapsed) {
+            if (monthsElapsed >= totalMonths) return 0;
+
+            const monthlyPayment = (originalBalance * monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) /
+                (Math.pow(1 + monthlyRate, totalMonths) - 1);
+
+            // Calculate remaining balance after monthsElapsed payments
+            const remainingMonths = totalMonths - monthsElapsed;
+            const remainingBalance = monthlyPayment * (Math.pow(1 + monthlyRate, remainingMonths) - 1) /
+                (monthlyRate * Math.pow(1 + monthlyRate, remainingMonths));
+
+            return Math.max(0, remainingBalance);
+        }
+
+        function updateScenarioRow(scenarioId, netCost, currentHousing, monthlyIncome) {
+            const monthlyDiff = netCost - currentHousing;
+            const annualCost = netCost * 12;
+            const incomePercent = (netCost / monthlyIncome) * 100;
+
+            document.getElementById(scenarioId).textContent = formatCurrency(netCost);
+            document.getElementById(scenarioId + 'Annual').textContent = formatCurrency(annualCost);
+            document.getElementById(scenarioId + 'Diff').textContent =
+                (monthlyDiff >= 0 ? '+' : '') + formatCurrency(monthlyDiff);
+            document.getElementById(scenarioId + 'Percent').textContent = incomePercent.toFixed(0) + '%';
+
+            let status = '';
+            if (incomePercent <= 20) {
+                status = '✅ Excellent';
+            } else if (incomePercent <= 25) {
+                status = '✅ Good';
+            } else if (incomePercent <= 33) {
+                status = '⚠️ High';
+            } else {
+                status = '❌ Risky';
+            }
+            document.getElementById(scenarioId + 'Status').textContent = status;
+        }
+
+        function calculatePrincipalPaydown(monthlyPayment, monthlyRate) {
+            // Approximate first month's principal payment
+            return monthlyPayment * monthlyRate / (Math.pow(1 + monthlyRate, 360) - 1) * Math.pow(1 + monthlyRate, 360);
+        }
+
+        function generateRecommendation(realisticNoRoom, realisticRoom, monthlyIncome, currentHousing, annualIncome, useAfterTaxIncome) {
+            const recommendationBox = document.getElementById('recommendationBox');
+            const recommendation = document.getElementById('recommendation');
+
+            const incomePercentNoRoom = (realisticNoRoom / monthlyIncome) * 100;
+            const incomePercentRoom = (realisticRoom / monthlyIncome) * 100;
+            const increasePctNoRoom = ((realisticNoRoom - currentHousing) / currentHousing) * 100;
+            const increasePctRoom = ((realisticRoom - currentHousing) / currentHousing) * 100;
+
+            let recommendationText = '';
+            let boxClass = '';
+
+            // Check if there are any roommate units
+            const hasRoommate = rentalUnits.some(unit => unit.isRoommate);
+            const incomeTypeText = useAfterTaxIncome ? 'after-tax income' : 'gross income';
+            const incomeTypeNote = useAfterTaxIncome ?
+                '<br><small>Note: Analysis based on after-tax income. Lenders typically use gross income for qualification.</small>' :
+                '<br><small>Note: Analysis based on gross income, which is standard for lending guidelines.</small>';
+
+            if (hasRoommate && incomePercentRoom <= 25 && increasePctRoom <= 400) {
+                recommendationText = `<strong>✅ RECOMMENDED WITH ROOMMATE</strong><br>
+                    Realistic cost: ${formatCurrency(realisticRoom)} (${incomePercentRoom.toFixed(0)}% of ${incomeTypeText})<br>
+                    This is a manageable house hack that builds wealth while keeping housing costs reasonable.${incomeTypeNote}`;
+                boxClass = 'positive';
+            } else if (incomePercentNoRoom <= 30 && increasePctNoRoom <= 500) {
+                recommendationText = `<strong>⚠️ PROCEED WITH CAUTION</strong><br>
+                    Consider this deal only if you're comfortable with ${formatCurrency(realisticNoRoom)} monthly costs (${incomePercentNoRoom.toFixed(0)}% of ${incomeTypeText}).<br>
+                    ${hasRoommate ? 'Having a roommate significantly improves the financial picture.' : 'Consider adding a roommate option to improve cash flow.'}${incomeTypeNote}`;
+                boxClass = 'warning';
+            } else {
+                recommendationText = `<strong>❌ NOT RECOMMENDED</strong><br>
+                    Monthly costs are too high relative to ${incomeTypeText} (${incomePercentNoRoom.toFixed(0)}% without roommate).<br>
+                    Consider a less expensive property or increase your income first.${incomeTypeNote}`;
+                boxClass = 'negative';
+            }
+
+            recommendation.innerHTML = recommendationText;
+            recommendationBox.className = `result-box wide-section ${boxClass}`;
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeRentalUnits();
+            toggleIncomeType(); // Initialize income type display
+            displaySavedConfigurations(); // Initialize saved configurations display
+            calculate();
+        });
+    </script>
+</body>
+
+</html>
